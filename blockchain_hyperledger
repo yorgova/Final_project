@@ -1,0 +1,147 @@
+
+Install/update the business blockchain network
+
+
+0. Stop and uninstall the fabric and network
+
+in /fabric-tools
+
+./stopFabric
+./teardownFabric
+
+
+npm uninstall -g composer-cli
+npm uninstall -g composer-rest-server 
+npm uninstall -g generator-hyperledger-composer
+npm uninstall -g composer-playground
+
+rm -rf .composer
+rm -rf .composer-credentials
+rm -rf .composer-connectionProfiles
+
+1. Install the composer, rest server, playground
+
+npm install -g composer-cli@0.20
+npm install -g composer-rest-server@0.20
+npm install -g generator-hyperledger-composer@0.20
+npm install -g composer-playground@0.20
+
+
+2. Create a skeleton business network using Yeoman. This command will require a business network name, description, author name, author email address, license selection and namespace.
+In home/radinka/	
+	yo hyperledger-composer:businessnetwork
+? Business network name: revchainnetwork
+? Description: real estate network
+? Author name:  admin
+? Author email: admin@revchainnetwork.com
+? License: Apache-2.0
+? Namespace: org.revchainnetwork
+? Do you want to generate an empty template network? No: generate a populated sample network
+
+   create package.json
+   create README.md
+   create models/org.revchainnetwork.cto
+   create permissions.acl
+   create .eslintrc.yml
+   create features/sample.feature
+   create features/support/index.js
+   create test/logic.js
+   create lib/logic.js
+
+
+3. Start Fabric
+in home/radinka/fabric-tools
+
+
+	./startFabric
+
+
+Check if there is any card connected to the network:
+	composer card list
+if there is no card – create the peer admin card:
+	./createPeerAdminCard.sh 
+
+4. Update the newly created business network with our: replace the folders and the files with our REVChain
+
+5. Generate a business network archive – creating the file revchain-network@            .bna
+
+from home/radinka/revchainnetwork
+
+	composer archive create -t dir -n .
+
+Looking for package.json of Business Network Definition
+	Input directory: /home/radinka/revchainnetwork
+
+Found:
+	Description: A network for use in a decentralized real estate market.
+	Name: revchain-network
+	Identifier: revchain-network@0.0.4
+
+Written Business Network Definition Archive file to 
+	Output file: revchain-network@0.0.4.bna
+
+Command succeeded
+
+6. Install the newtwork
+
+from home/radinka/revchainnetwork
+
+6.1 Install the newtowrk from the archive
+
+	composer network install --card PeerAdmin@hlfv1 --archiveFile revchain-network@0.0.4.bna
+
+
+6.2 Start the business network
+
+	composer network start --networkName revchain-network --networkVersion 0.0.4 --networkAdmin admin --networkAdminEnrollSecret adminpw --card PeerAdmin@hlfv1 --file networkadmin.card 
+
+
+6.3 Import the network administrator identity as a usable business network card, run the following command:
+	composer card import --file networkadmin.card
+Result:
+	Card file: networkadmin.card
+	Card name: admin@revchain-network
+
+To check that the business network has been deployed successfully, run the following command to ping the network:
+composer network ping --card admin@revchain-network
+
+7. Start the REST server
+
+	from home/radinka/revchainnetwork
+
+	composer-rest-server
+
+? Enter the name of the business network card to use: admin@revchain-network
+? Specify if you want namespaces in the generated REST API: never use namespaces
+? Specify if you want to use an API key to secure the REST API: No
+? Specify if you want to enable authentication for the REST API using Passport: No
+? Specify if you want to enable the explorer test interface: Yes
+? Specify a key if you want to enable dynamic logging: n
+? Specify if you want to enable event publication over WebSockets: No
+? Specify if you want to enable TLS security for the REST API: No
+
+
+8. Connect to angular front-end application
+
+	yo hyperledger-composer:angular
+
+Welcome to the Hyperledger Composer Angular project generator
+? Do you want to connect to a running Business Network? Yes
+? Project name: angular-app
+? Description: Hyperledger Composer Angular project
+? Author name: admin
+? Author email: admin@revchainnetwork.com
+? License: Apache-2.0
+? Name of the Business Network card: admin@revchain-network
+? Do you want to generate a new REST API or connect to an existing REST API?  Connect to an existing REST AP
+I
+? REST server address: http://localhost
+? REST server port: 3000
+? Should namespaces be used in the generated REST API? Namespaces are not used
+
+
+Start the angular application:
+	npm start
+The application is visible on 
+localhost:4200
+
